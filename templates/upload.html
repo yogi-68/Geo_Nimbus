@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TIFF File Upload & Map Viewer</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.css" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.72.1/L.Control.Locate.min.css" />
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background-color: #ecf0f1;
+        }
+        .container {
+            display: flex;
+            height: 100vh;
+            overflow: hidden;
+        }
+        .sidebar {
+            width: 350px;
+            background-color: #34495e;
+            padding: 40px 20px;
+            box-shadow: 2px 0 10px rgba(0, 0, 0, 0.2);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+            box-sizing: border-box; /* Ensure padding and border are included in element's total width and height */
+        }
+        .sidebar h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #1abc9c;
+            text-align: center;
+        }
+        .sidebar label {
+            font-size: 16px;
+            margin-bottom: 10px;
+            color: #ecf0f1;
+            text-align: center;
+            display: block;
+        }
+        .sidebar input[type="file"] {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 20px;
+            border: 2px solid #16a085;
+            border-radius: 4px;
+            background-color: #2c3e50;
+            color: #ecf0f1;
+            font-size: 16px;
+        }
+        .sidebar button {
+            padding: 12px 20px;
+            border: none;
+            border-radius: 30px;
+            background-color: #e74c3c;
+            color: white;
+            cursor: pointer;
+            font-size: 18px;
+            transition: background-color 0.3s ease;
+            width: 100%;
+        }
+        .sidebar button:hover {
+            background-color: #c0392b;
+        }
+        .map-container {
+            flex-grow: 1;
+            position: relative;
+            padding: 20px; /* Add padding around the map */
+        }
+        #map {
+            width: calc(100% - 40px); /* Adjust width to account for padding */
+            height: calc(100% - 40px); /* Adjust height to account for padding */
+            margin: 0 auto; /* Center the map horizontally */
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Left Sidebar -->
+        <div class="sidebar">
+            <h1>Upload TIFF File</h1>
+            <form action="{{ url_for('upload_region') }}" method="post" enctype="multipart/form-data">
+                <label for="region_file">Select a TIFF File</label>
+                <input type="file" name="region_file" id="region_file" accept=".tiff,.tif">
+                <button type="submit">Upload and Process</button>
+            </form>
+
+            {% if error %}
+                <div class="notification is-danger mt-4">
+                    {{ error }}
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Right Map Container -->
+        <div class="map-container">
+            <div id="map"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/leaflet.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet-locatecontrol/0.72.1/L.Control.Locate.min.js"></script>
+    <script>
+        // Initialize the Leaflet map
+        var map = L.map('map').setView([20, 0], 2);
+
+        // Add a basic tile layer to the map
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+        }).addTo(map);
+
+        // Add a locate control to the map
+        L.control.locate({
+            position: 'topright',
+            onLocationError: function(err) {
+                alert(err.message);
+            },
+            locateOptions: {
+                maxZoom: 16 // Adjust zoom level when locating
+            },
+            strings: {
+                title: "Show me where I am"
+            },
+            flyTo: false // Prevent zooming in when locating
+        }).addTo(map);
+    </script>
+</body>
+</html>

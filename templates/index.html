@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Bathymetry Map Visualization</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Bathymetry Map Visualization</h1>
+    </header>
+    <div class="container">
+        <div class="sidebar">
+            <h2>Bounding Box Coordinates</h2>
+            <form method="POST" action="/">
+                <label for="north">North Latitude:</label>
+                <input type="text" id="north" name="north" value="{{ north if north is not none else '' }}" required>
+                
+                <label for="south">South Latitude:</label>
+                <input type="text" id="south" name="south" value="{{ south if south is not none else '' }}" required>
+                
+                <label for="east">East Longitude:</label>
+                <input type="text" id="east" name="east" value="{{ east if east is not none else '' }}" required>
+                
+                <label for="west">West Longitude:</label>
+                <input type="text" id="west" name="west" value="{{ west if west is not none else '' }}" required>
+                
+                <label for="view_mode">View Mode:</label>
+                <select id="view_mode" name="view_mode">
+                    <option value="grayscale" {% if not colorized %}selected{% endif %}>Grayscale</option>
+                    <option value="colored" {% if colorized %}selected{% endif %}>Colored</option>
+                </select>
+
+                <button type="submit">Visualize</button>
+                <a href="/" class="clear-btn">Clear</a>
+            </form>
+            
+            {% if image_data %}
+                <h2>Result:</h2>
+                <input type="hidden" id="image-data" value="{{ image_data }}">
+                <input type="hidden" id="scale-data" value="{{ scale_data }}">
+                <button onclick="openVisualization()">Open Visualization</button>
+                <form method="POST" action="/download_tiff">
+                    <input type="hidden" name="file_path" value="{{ file_path }}">
+                    <input type="hidden" name="north" value="{{ request.form['north'] }}">
+                    <input type="hidden" name="south" value="{{ request.form['south'] }}">
+                    <input type="hidden" name="east" value="{{ request.form['east'] }}">
+                    <input type="hidden" name="west" value="{{ request.form['west'] }}">
+                    
+                    <button type="submit" class="download-btn">Download TIFF File</button>
+                </form>
+                <form id="cog-download-form">
+                    <input type="hidden" name="file_path" value="{{ file_path }}">
+                    <input type="hidden" name="north" value="{{ request.form['north'] }}">
+                    <input type="hidden" name="south" value="{{ request.form['south'] }}">
+                    <input type="hidden" name="east" value="{{ request.form['east'] }}">
+                    <input type="hidden" name="west" value="{{ request.form['west'] }}">
+                    
+                    <button type="button" class="download-btn" onclick="downloadCOG()">COG Download</button>
+                </form>
+            {% elif error %}
+                <p class="error-message">{{ error }}</p>
+            {% endif %}
+        </div>
+        <div class="map-container">
+            <div id="map"></div>
+            <select id="feature-select" class="process-btn" onchange="handleFeatureSelect()">
+                <option value="">Select Feature</option>
+                <option value="locate_tiff">Locate TIFF</option>
+                <option value="path_profile">Path Profile</option>
+                <option value="convert_stl">Convert to STL</option>
+                <option value="convert_csv">Convert to CSV</option>
+                <option value="hill_shade">Hill Shade</option>
+            </select>
+        </div>
+    </div>
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="https://unpkg.com/leaflet-draw@1.0.4/dist/leaflet.draw.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
